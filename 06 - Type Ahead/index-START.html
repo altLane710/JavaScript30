@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>Type Ahead 👀</title>
   <link rel="stylesheet" href="style.css">
   <link rel="icon" href="https://fav.farm/🔥" />
 </head>
+
 <body>
 
   <form class="search-form">
@@ -15,9 +17,57 @@
       <li>or a state</li>
     </ul>
   </form>
-<script>
-const endpoint = 'https://gist.githubusercontent.com/Miserlou/c5cd8364bf9b2420bb29/raw/2bf258763cdddd704f8ffd3ea9a3e81d25e2c6f6/cities.json';
+  <script>
+    const endpoint = 'https://gist.githubusercontent.com/Miserlou/c5cd8364bf9b2420bb29/raw/2bf258763cdddd704f8ffd3ea9a3e81d25e2c6f6/cities.json';
+    let cities = [];
 
-</script>
+    async function fetchCities(params) {
+      const res = await fetch(endpoint);
+
+      return await res.json();
+    }
+
+    (async () => {
+      try {
+        cities = await fetchCities();
+      } catch (error) {
+        console.log(error)
+      }
+    })()
+
+    const input = document.querySelector('.search');
+    const suggestions = document.querySelector('.suggestions');
+
+    input.addEventListener('keyup', (e) => {
+      const inputValue = e.target.value;
+
+      const items = suggestions.querySelectorAll('li');
+      items.forEach((v) => {
+        suggestions.removeChild(v)
+      })
+
+      const filteredItems = cities.filter((e) => inputValue.length > 0 ? e.city.includes(inputValue) || e.state.includes(inputValue) : true)
+
+      filteredItems.forEach((e) => {
+        const item = document.createElement('li')
+        const itemText = `${e.city}, ${e.state}`;
+        const parts = itemText.split(inputValue);
+
+        const textWitHighlight = parts.reduce((prev, cur, i) => {
+          if (i > 0) {
+            return `${prev}<span style="background-color: yellow">${inputValue}</span>${cur}`
+          } else {
+            return `${prev}${cur}`
+          }
+
+        }, '')
+
+        item.innerHTML = `<div style="display: flex; width: 100%; align-items: center"><span style="flex: 1">${parts.length >= 2 ? textWitHighlight : itemText}</span><span style="flex: 0; font-size: 0.75em"><em>${Number(e.population).toLocaleString()}</em></span></div>`
+        suggestions.appendChild(item)
+      })
+    })
+
+  </script>
 </body>
+
 </html>
